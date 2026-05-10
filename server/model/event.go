@@ -48,6 +48,7 @@ type EventStore struct {
 	byCategory map[string]uint64
 	byType     map[string]uint64
 	lastTime   time.Time
+	startTime  time.Time
 }
 
 func NewEventStore(capacity int) *EventStore {
@@ -56,6 +57,7 @@ func NewEventStore(capacity int) *EventStore {
 		capacity:   capacity,
 		byCategory: make(map[string]uint64),
 		byType:     make(map[string]uint64),
+		startTime:  time.Now(),
 	}
 }
 
@@ -112,9 +114,9 @@ func (s *EventStore) Stats(clientCount int) Stats {
 	for k, v := range s.byCategory { byCat[k] = v }
 	for k, v := range s.byType { byTyp[k] = v }
 	var eps float64
-	if !s.lastTime.IsZero() {
-		elapsed := time.Since(s.lastTime).Seconds()
-		if elapsed > 0 && elapsed < 60 { eps = float64(s.totalCount) / elapsed }
+	elapsed := time.Since(s.startTime).Seconds()
+	if elapsed > 0 {
+		eps = float64(s.totalCount) / elapsed
 	}
 	return Stats{
 		TotalEvents: s.totalCount, EventsPerSec: eps,

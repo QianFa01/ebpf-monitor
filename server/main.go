@@ -39,6 +39,7 @@ func main() {
 	{
 		api.POST("/events", eventHandler.PostEvents)
 		api.GET("/events", eventHandler.GetEvents)
+		api.GET("/events/recent", eventHandler.HandleGetRecent)
 		api.GET("/stats", eventHandler.GetStats)
 	}
 

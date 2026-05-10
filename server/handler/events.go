@@ -21,10 +21,15 @@ func NewEventHandler(store *model.EventStore, hub *WSHub) *EventHandler {
 }
 
 func (h *EventHandler) PostEvents(c *gin.Context) {
+	raw, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+		return
+	}
 	var events []model.Event
-	if err := c.ShouldBindJSON(&events); err != nil {
+	if err := json.Unmarshal(raw, &events); err != nil {
 		var single model.Event
-		if err2 := c.ShouldBindJSON(&single); err2 != nil {
+		if err2 := json.Unmarshal(raw, &single); err2 != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
 			return
 		}
