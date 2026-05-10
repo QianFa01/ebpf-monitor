@@ -1,0 +1,21 @@
+FROM ubuntu:22.04 AS builder
+RUN apt-get update && apt-get install -y \
+    build-essential cmake clang llvm libbpf-dev libelf-dev zlib1g-dev \
+    libcurl4-openssl-dev pkg-config linux-headers-generic \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY agent/ .
+RUN clang -target bpf -D__TARGET_ARCH_x86 -g -O2 -I/usr/include/x86_64-linux-gnu \
+    -c bpf/process_monitor.bpf.c -o bpf/process_monitor.bpf.o && \
+    clang -target bpf -D__TARGET_ARCH_x86 -g -O2 -I/usr/include/x86_64-linux-gnu \
+    -c bpf/network_monitor.bpf.c -o bpf/network_monitor.bpf.o && \
+    clang -target bpf -D__TARGET_ARCH_x86 -g -O2 -I/usr/include/x86_64-linux-gnu \
+    -c bpf/file_monitor.bpf.c -o bpf/file_monitor.bpf.o
+RUN mkdir build && cd build && cmake .. && make
+
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y libbpf0 libelf1 libcurl4 zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/build/ebpf-monitor-agent /usr/local/bin/
+COPY --from=builder /app/bpf/*.bpf.o /opt/ebpf-monitor/bpf/
+ENTRYPOINT ["ebpf-monitor-agent"]
