@@ -1,6 +1,6 @@
 # eBPF Security Monitor
 
-基于 eBPF 的主机/容器安全事件实时采集与监控系统。
+基于 eBPF 的主机/容器安全事件实时采集与监控系统。C++ Agent 通过 tracepoint/kprobe 采集进程、网络、文件内核事件，经 Go Web Server 中转，Vue 3 前端实时展示并支持事件过滤与统计分析。
 
 ## 架构总览
 
